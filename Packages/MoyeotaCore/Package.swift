@@ -7,9 +7,12 @@ let package = Package(
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
         .library(name: "MoyeotaDomain", targets: ["MoyeotaDomain"]),
+        .library(name: "MoyeotaData", targets: ["MoyeotaData"]),
     ],
     targets: [
         .target(name: "MoyeotaDomain"),
+        .target(name: "MoyeotaData", dependencies: ["MoyeotaDomain"]),
         .testTarget(name: "MoyeotaDomainTests", dependencies: ["MoyeotaDomain"]),
+        .testTarget(name: "MoyeotaDataTests", dependencies: ["MoyeotaData", "MoyeotaDomain"]),
     ]
 )
