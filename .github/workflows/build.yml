@@ -1,0 +1,109 @@
+name: 빌드 테스트
+
+on:
+  pull_request:
+    paths:
+      - 'Moyeota/**'
+      - 'Moyeota.xcodeproj/**'
+      - 'Packages/**'
+      - 'Config/**'
+      - 'scripts/check.sh'
+      - '.github/workflows/build.yml'
+  # develop 머지마다 한 번 돌려 Swift 패키지 캐시를 **저장**한다. PR 에서 만든 캐시는 그 PR 안에서만 보여,
+  # pull_request 만 걸려 있으면 모든 PR 이 Firebase 와 네이버 지도를 처음부터 받는다(ui 와 app 잡이 같은 캐시를 쓴다).
+  push:
+    branches: [develop]
+    paths:
+      - 'Moyeota/**'
+      - 'Moyeota.xcodeproj/**'
+      - 'Packages/**'
+      - 'Config/**'
+      - 'scripts/check.sh'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+# 같은 PR 에 새 푸시가 오면 이전 실행은 취소한다 — 러너 큐에 낡은 빌드가 줄 서서 결과가 늦어지는 걸 막는다
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # 개발 기기와 같은 Xcode 로 고정한다. 러너 기본값은 수시로 올라가, 컴파일러가 바뀌면 코드와 무관하게 PR 이 깨진다.
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app
+  # Xcode 26.3 의 SDK 와 같은 런타임. 러너에는 26.3 런타임이 없고, 더 새 런타임으로 테스트가 도는지는 확인하지 못했다.
+  MOYEOTA_SIM_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-26-2
+
+jobs:
+  core:
+    name: 도메인·데이터 테스트
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Test
+        run: scripts/check.sh core-test
+
+      - name: Upload log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: log-core
+          path: ~/Library/Caches/moyeota-ios-check/log-*.txt
+          retention-days: 7
+
+  ui:
+    name: UI 테스트
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Restore Swift packages
+        uses: actions/cache@v5
+        with:
+          path: ~/Library/Caches/moyeota-ios-check/clones-ui
+          key: spm-${{ hashFiles('Packages/MoyeotaUI/Package.resolved') }}
+
+      - name: Test
+        run: scripts/check.sh test-all
+
+      - name: Upload log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: log-ui
+          path: ~/Library/Caches/moyeota-ios-check/log-*.txt
+          retention-days: 7
+
+  app:
+    name: 앱 빌드 (${{ matrix.command }})
+    runs-on: macos-26
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        # app = 시뮬레이터 Debug, release = 실기기 Release 와 디버그 전용 코드 제거 확인. 서명은 하지 않는다.
+        command: [app, release]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Restore Swift packages
+        uses: actions/cache@v5
+        with:
+          path: ~/Library/Caches/moyeota-ios-check/clones-ui
+          key: spm-${{ hashFiles('Packages/MoyeotaUI/Package.resolved') }}
+
+      - name: Build
+        run: scripts/check.sh ${{ matrix.command }}
+
+      - name: Upload log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: log-${{ matrix.command }}
+          path: ~/Library/Caches/moyeota-ios-check/log-*.txt
+          retention-days: 7
