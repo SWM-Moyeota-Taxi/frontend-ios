@@ -109,7 +109,7 @@ case "$cmd" in
     LOG="$WORK/log-release.txt"
     (cd "$ROOT" && xcodebuild build -project Moyeota.xcodeproj -scheme Moyeota -configuration Release \
       -destination "generic/platform=iOS" \
-      -derivedDataPath "$WORK/dd-release" -clonedSourcePackagesDirPath "$CLONES" \
+      -derivedDataPath "$WORK/dd-release" -clonedSourcePackagesDirPath "$CLONES" MOYEOTA_SPM_DIR="$CLONES" \
       -skipPackagePluginValidation -skipMacroValidation -disableAutomaticPackageResolution \
       CODE_SIGNING_ALLOWED=NO 2>&1) > "$LOG"
     rc=$?; filter < "$LOG"
