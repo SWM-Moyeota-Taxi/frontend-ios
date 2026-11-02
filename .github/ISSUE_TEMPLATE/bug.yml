@@ -1,0 +1,42 @@
+name: "🐛 버그 수정"
+description: "버그를 발견했을 때 사용해주세요"
+labels: ["bug"]
+assignees: []
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 버그 설명
+      description: 어떤 버그인지 설명해주세요
+      placeholder: "예: 합승 목록 화면에서 당겨서 새로고침 시 앱이 종료됩니다"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 재현 방법
+      description: 버그를 재현하는 단계를 작성해주세요
+      placeholder: |
+        1. 하단 탭에서 합승 탭 진입
+        2. 시트를 위로 스와이프
+        3. 앱 강제 종료 확인
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 동작
+      description: 정상적으로 동작했을 때 어떤 결과가 나와야 하나요?
+      placeholder: "합승 목록이 갱신되어 표시되어야 합니다"
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: 참고 사항
+      description: 로그, 스크린샷, 기기/시뮬레이터 정보 등 추가 정보가 있다면 작성해주세요
+    validations:
+      required: false

@@ -1,0 +1,47 @@
+name: "✨ 기능 구현"
+description: "새로운 기능을 제안하거나 구현할 때 사용해주세요"
+labels: ["feature"]
+assignees: []
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 기능 설명
+      description: 구현하려는 기능을 설명해주세요
+      placeholder: "예: 합승 방 합류 액션을 구현합니다 (합류 확인 화면 → 합류 API 호출)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: 작업 목록
+      description: 구현에 필요한 세부 작업을 체크리스트로 작성해주세요
+      placeholder: |
+        - [ ] 화면 Composable 작성
+        - [ ] ViewModel 상태/이벤트 구현
+        - [ ] Repository·API 연동
+        - [ ] NavGraph 연결
+    validations:
+      required: true
+
+  - type: textarea
+    id: api-spec
+    attributes:
+      label: 연동 API 스펙 (선택)
+      description: 연동할 백엔드 엔드포인트가 있다면 간단히 작성해주세요
+      placeholder: |
+        - Method: POST
+        - URL: /api/matching/rooms
+        - Request Body: { departure, destination, capacity }
+        - Response: { partyId }
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: 참고 사항
+      description: 와이어프레임 화면 번호, 디자인 링크 등 추가로 공유할 내용이 있다면 작성해주세요
+    validations:
+      required: false

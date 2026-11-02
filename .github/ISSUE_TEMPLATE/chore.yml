@@ -1,0 +1,25 @@
+name: "🔧 문서/설정"
+description: "문서 작성, 설정 변경, 의존성 업데이트 등에 사용해주세요"
+labels: ["chore"]
+assignees: []
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 작업 설명
+      description: 어떤 작업인지 설명해주세요
+      placeholder: "예: Firebase SDK 버전을 업데이트합니다"
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: 작업 목록
+      description: 세부 작업을 체크리스트로 작성해주세요
+      placeholder: |
+        - [ ] libs.versions.toml 버전 갱신
+        - [ ] 빌드 확인
+        - [ ] 주요 화면 회귀 확인
+    validations:
+      required: true
