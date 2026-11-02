@@ -9,9 +9,10 @@ permissions:
 
 jobs:
   release:
-    # Apple 계정과 서명 인증서가 준비되면 여기에 Archive 와 TestFlight 업로드를 더한다.
-    # 지금은 Android 의 릴리스와 같은 규칙으로 버전 태그와 릴리스 노트만 만든다. 서명 안 된 앱은 설치할 수 없어 올리지 않는다.
+    # 태그와 릴리스 노트가 먼저다. 업로드가 실패해도 무엇이 main 에 들어갔는지는 남는다.
     runs-on: ubuntu-latest
+    outputs:
+      version-code: ${{ steps.version.outputs.version-code }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -26,3 +27,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
         run: gh release create "v${VERSION}" --generate-notes --target "$GITHUB_SHA"
+
+  testflight:
+    needs: release
+    uses: ./.github/workflows/testflight.yml
+    with:
+      build-number: ${{ needs.release.outputs.version-code }}
+    secrets: inherit

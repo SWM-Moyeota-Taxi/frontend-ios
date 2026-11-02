@@ -46,9 +46,8 @@ public enum SupportLinks {
 
     /// App Store 앱 번호(`id` 뒤의 숫자). 강제 업데이트 화면의 「업데이트하러 가기」가 쓴다(`openPlayStoreListing`).
     ///
-    /// **앱을 App Store Connect 에 등록해야 생기는 값이라 아직 없다.** nil 이면 스토어 검색 결과로 보낸다 —
-    /// 잠긴 화면에서 나갈 길이 없는 것보다 낫지만 설치 버튼까지 한 번에 가지는 못한다. 첫 게시 전에 채운다.
-    public static let APP_STORE_ID: String? = nil
+    /// nil 이면 스토어 검색 결과로 보낸다 — 잠긴 화면에서 나갈 길이 없는 것보다 낫지만 설치 버튼까지 한 번에 가지는 못한다.
+    public static let APP_STORE_ID: String? = "6829815996"
 }
 
 /// 화면에 넘기는 주소 묶음. 기본값은 `SupportLinks` 의 운영 값이다.
