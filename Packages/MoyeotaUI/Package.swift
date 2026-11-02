@@ -3,7 +3,9 @@
 // presentation 을 기능별 모듈로 나눈 이유: 기능끼리 컴파일이 격리돼 병렬 작업이 서로를 깨뜨리지 않는다.
 import PackageDescription
 
-let features: [String] = []
+let features: [String] = [
+    "FeatureAuth",
+]
 
 let package = Package(
     name: "MoyeotaUI",
