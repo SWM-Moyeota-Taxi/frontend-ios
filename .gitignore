@@ -1,0 +1,28 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+.swiftpm/
+.build/
+
+# 로컬 비밀값 (Android 의 local.properties 자리)
+Config/Secrets.xcconfig
+
+# Firebase 콘솔에서 받는 파일. 저장소에 넣을지는 팀이 정한다 (Android 는 google-services.json 을 추적한다).
+Moyeota/GoogleService-Info.plist
+
+# 서명 키
+*.p12
+*.p8
+*.mobileprovision
+*.cer
+*.pem
+
+# macOS
+.DS_Store
+
+# 에이전트 작업물
+_workspace/
+.claude/settings.local.json
