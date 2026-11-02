@@ -5,6 +5,9 @@ outputs:
   version:
     description: "Calculated version (YYYY.MMDD.N)"
     value: ${{ steps.version.outputs.version }}
+  version-code:
+    description: "TestFlight 빌드 번호 (YYMMDD*100+N). 재실행해도 값이 겹치지 않고 날짜 순서로 커진다"
+    value: ${{ steps.version.outputs.version-code }}
 
 runs:
   using: composite
@@ -15,9 +18,17 @@ runs:
       run: |
         TODAY=$(TZ=Asia/Seoul date +"%Y.%m%d")
         EXISTING=$(gh release list --json tagName -q "[.[] | select(.tagName | startswith(\"v${TODAY}\"))] | length" 2>/dev/null || echo "0")
-        NEXT_VERSION="${TODAY}.$((EXISTING + 1))"
+        SEQ=$((EXISTING + 1))
+        NEXT_VERSION="${TODAY}.${SEQ}"
+        if [ "$SEQ" -gt 99 ]; then
+          echo "::error::하루 빌드가 99 번을 넘었습니다. 빌드 번호가 날짜 순서를 깨뜨립니다." >&2
+          exit 1
+        fi
+        DATE_PART=$(TZ=Asia/Seoul date +"%y%m%d")
+        NEXT_VERSION_CODE=$((10#$DATE_PART * 100 + SEQ))
 
         echo "version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
-        echo "Version: $NEXT_VERSION"
+        echo "version-code=$NEXT_VERSION_CODE" >> "$GITHUB_OUTPUT"
+        echo "Version: $NEXT_VERSION (build $NEXT_VERSION_CODE)"
       env:
         GH_TOKEN: ${{ github.token }}

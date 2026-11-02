@@ -195,7 +195,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Release 이고 GoogleService-Info.plist 가 있을 때만 올린다. 없으면 건너뛰어 빌드를 막지 않는다.\nif [ \"$CONFIGURATION\" = \"Release\" ] && [ -f \"$SRCROOT/Moyeota/GoogleService-Info.plist\" ]; then\n  \"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\nfi\n";
+			shellScript = "# Release 이고 GoogleService-Info.plist 가 있을 때만 올린다. 없으면 건너뛰어 빌드를 막지 않는다.\nif [ \"$CONFIGURATION\" = \"Release\" ] && [ -f \"$SRCROOT/Moyeota/GoogleService-Info.plist\" ]; then\n  RUN=\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n  # 패키지를 다른 곳에 받는 빌드(scripts/check.sh, CI)는 그 위치를 MOYEOTA_SPM_DIR 로 넘긴다.\n  [ -x \"$RUN\" ] || RUN=\"${MOYEOTA_SPM_DIR}/checkouts/firebase-ios-sdk/Crashlytics/run\"\n  \"$RUN\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
