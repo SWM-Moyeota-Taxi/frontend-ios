@@ -1,0 +1,28 @@
+name: Create Release
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # Apple 계정과 서명 인증서가 준비되면 여기에 Archive 와 TestFlight 업로드를 더한다.
+    # 지금은 Android 의 릴리스와 같은 규칙으로 버전 태그와 릴리스 노트만 만든다. 서명 안 된 앱은 설치할 수 없어 올리지 않는다.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Calculate version
+        id: version
+        uses: ./.github/actions/calculate-version
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: gh release create "v${VERSION}" --generate-notes --target "$GITHUB_SHA"
