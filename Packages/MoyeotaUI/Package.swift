@@ -5,6 +5,7 @@ import PackageDescription
 
 let features: [String] = [
     "FeatureAuth",
+    "FeatureOnboarding",
 ]
 
 let package = Package(
