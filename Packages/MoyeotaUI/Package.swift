@@ -10,6 +10,7 @@ let features: [String] = [
     "FeatureExplore",
     "FeatureMatching",
     "FeatureChat",
+    "FeatureMyPage",
 ]
 
 let package = Package(
