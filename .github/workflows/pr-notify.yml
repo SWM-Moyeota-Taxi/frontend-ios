@@ -1,0 +1,75 @@
+name: PR Slack 알림
+
+on:
+  pull_request:
+    types: [ opened, reopened, ready_for_review, closed ]
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    # 오픈 계열(draft 제외) 또는 머지된 closed만 알림
+    if: >-
+      (github.event.action != 'closed' && github.event.pull_request.draft == false) ||
+      (github.event.action == 'closed' && github.event.pull_request.merged == true)
+    steps:
+      - name: Slack payload 생성
+        id: payload
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const MEMBERS = {
+              'KII1ua':      { name: '황성윤', slack: 'U0BJMFMF1DY' },
+              'dupong00':    { name: '나성훈', slack: 'U0BKFRPTRRN' },
+              'erase-jeong': { name: '정지우', slack: 'U0BJKG8347Q' },
+            };
+            const display = (login) => MEMBERS[login]?.name ?? login;
+            const mention = (login) =>
+              MEMBERS[login]?.slack ? `<@${MEMBERS[login].slack}>` : `@${login}`;
+
+            const pr = context.payload.pull_request;
+            const title = `<${pr.html_url}|#${pr.number} ${pr.title}>`;
+            const branches = `\`${pr.head.ref}\` → \`${pr.base.ref}\``;
+            const merged = context.payload.action === 'closed';
+
+            let text, body;
+            if (merged) {
+              text = `✅ PR이 머지됐어요! #${pr.number} ${pr.title}`;
+              body = [
+                `✅ *PR이 머지됐어요!*`,
+                title,
+                `${branches} · 머지: ${display(pr.merged_by?.login ?? pr.user.login)}`,
+              ];
+            } else {
+              text = `🔔 새 PR이 올라왔어요! #${pr.number} ${pr.title}`;
+              const reviewers = (pr.requested_reviewers ?? [])
+                .map((r) => mention(r.login))
+                .join(' ');
+              body = [
+                `🔔 *새 PR이 올라왔어요!*`,
+                title,
+                `작성자: ${display(pr.user.login)} · ${branches}`,
+              ];
+              if (reviewers) body.push(`리뷰어: ${reviewers} 👀 리뷰 부탁드려요`);
+            }
+
+            const payload = {
+              text,
+              blocks: [
+                {
+                  type: 'section',
+                  text: { type: 'mrkdwn', text: body.join('\n') },
+                },
+              ],
+            };
+            core.setOutput('payload', JSON.stringify(payload));
+
+      - name: Slack 전송
+        uses: slackapi/slack-github-action@v4.0.0
+        continue-on-error: true
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: ${{ steps.payload.outputs.payload }}

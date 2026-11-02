@@ -58,6 +58,16 @@ scripts/check.sh release                 # 실기기용 Release 빌드와 디버
 
 오류·실패·결과 줄만 출력한다. 전체 로그와 빌드 산출물은 `~/Library/Caches/moyeota-ios-check` 에 있다(`MOYEOTA_CHECK_DIR` 로 바꿀 수 있다). 시뮬레이터는 `moyeota-check-<모듈>` 이름으로 알아서 만든다.
 
+## 브랜치와 CI
+
+Android 저장소와 같다. `develop` 에서 `feat/`, `fix/`, `chore/`, `docs/`, `ci/` 브랜치를 따 PR 을 올리고, `develop` 에 머지되면 `main` 으로 가는 릴리스 PR 이 자동으로 만들어진다. `main` 에 머지되면 `vYYYY.MMDD.N` 태그와 GitHub Release 가 생긴다.
+
+앱 코드나 빌드 설정을 바꾼 PR 에서 GitHub Actions 가 도메인·데이터 테스트, UI 전체 테스트, 시뮬레이터 빌드, 실기기용 Release 빌드를 돌린다. Apple 계정이 준비되지 않아 TestFlight 업로드는 아직 없다.
+
+저장소 Secrets: `SLACK_WEBHOOK_URL`(PR 알림), `CLAUDE_CODE_OAUTH_TOKEN`(자동 리뷰). 토큰이 없으면 자동 리뷰는 건너뛰고, 웹훅이 없으면 알림 단계만 실패한 채 PR 상태에는 영향을 주지 않는다.
+
+의존성 버전은 `Packages/MoyeotaUI/Package.resolved` 가 잠근다. Firebase 까지 포함된 파일이라 `scripts/check.sh` 는 자동 해석을 끄고 이 파일만 따른다. Xcode 로 열면 이 파일이 다시 쓰일 수 있으니, 의존성을 바꾼 게 아니면 커밋하지 않는다.
+
 ## 모듈
 
 | 위치 | 내용 |
