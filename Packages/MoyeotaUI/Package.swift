@@ -10,8 +10,10 @@ let package = Package(
     platforms: [.iOS(.v17)],
     products: [
         .library(name: "MoyeotaDesignSystem", targets: ["MoyeotaDesignSystem"]),
+        .library(name: "PresentationCore", targets: ["PresentationCore"]),
     ] + features.map { .library(name: $0, targets: [$0]) },
     dependencies: [
+        .package(path: "../MoyeotaCore"),
         // Android 의 naverMapSdk 3.23.3 과 같은 버전으로 고정한다.
         .package(url: "https://github.com/navermaps/SPM-NMapsMap.git", exact: "3.23.3"),
     ],
@@ -20,6 +22,14 @@ let package = Package(
             name: "MoyeotaDesignSystem",
             dependencies: [.product(name: "NMapsMap", package: "SPM-NMapsMap")]
         ),
+        .target(
+            name: "PresentationCore",
+            dependencies: [
+                "MoyeotaDesignSystem",
+                .product(name: "MoyeotaDomain", package: "MoyeotaCore"),
+            ]
+        ),
+        .testTarget(name: "PresentationCoreTests", dependencies: ["PresentationCore"]),
     ]
         + features.map {
             .target(name: $0, dependencies: ["PresentationCore", "MoyeotaDesignSystem"])
