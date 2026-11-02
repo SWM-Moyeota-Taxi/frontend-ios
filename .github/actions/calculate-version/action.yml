@@ -1,0 +1,23 @@
+name: Calculate Version
+description: KST 기반 시간 버전(YYYY.MMDD.N)을 계산합니다. Android 저장소와 같은 규칙입니다.
+
+outputs:
+  version:
+    description: "Calculated version (YYYY.MMDD.N)"
+    value: ${{ steps.version.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Determine next version
+      id: version
+      shell: bash
+      run: |
+        TODAY=$(TZ=Asia/Seoul date +"%Y.%m%d")
+        EXISTING=$(gh release list --json tagName -q "[.[] | select(.tagName | startswith(\"v${TODAY}\"))] | length" 2>/dev/null || echo "0")
+        NEXT_VERSION="${TODAY}.$((EXISTING + 1))"
+
+        echo "version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+        echo "Version: $NEXT_VERSION"
+      env:
+        GH_TOKEN: ${{ github.token }}
