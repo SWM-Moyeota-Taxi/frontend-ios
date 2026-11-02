@@ -3,7 +3,7 @@
 // presentation 을 기능별 모듈로 나눈 이유: 기능끼리 컴파일이 격리돼 병렬 작업이 서로를 깨뜨리지 않는다.
 import PackageDescription
 
-let features: [String] = [
+let features = [
     "FeatureAuth",
     "FeatureOnboarding",
     "FeatureHome",
@@ -19,6 +19,7 @@ let package = Package(
     products: [
         .library(name: "MoyeotaDesignSystem", targets: ["MoyeotaDesignSystem"]),
         .library(name: "PresentationCore", targets: ["PresentationCore"]),
+        .library(name: "AppNavigation", targets: ["AppNavigation"]),
     ] + features.map { .library(name: $0, targets: [$0]) },
     dependencies: [
         .package(path: "../MoyeotaCore"),
@@ -37,7 +38,19 @@ let package = Package(
                 .product(name: "MoyeotaDomain", package: "MoyeotaCore"),
             ]
         ),
+        .target(
+            name: "AppNavigation",
+            dependencies: [
+                "PresentationCore",
+                "MoyeotaDesignSystem",
+                .product(name: "MoyeotaDomain", package: "MoyeotaCore"),
+            ] + features.map { .target(name: $0) }
+        ),
         .testTarget(name: "PresentationCoreTests", dependencies: ["PresentationCore"]),
+        .testTarget(
+            name: "AppNavigationTests",
+            dependencies: ["AppNavigation", .product(name: "MoyeotaDomain", package: "MoyeotaCore")]
+        ),
     ]
         + features.map {
             .target(name: $0, dependencies: ["PresentationCore", "MoyeotaDesignSystem"])
