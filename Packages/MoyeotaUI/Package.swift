@@ -7,6 +7,7 @@ let features: [String] = [
     "FeatureAuth",
     "FeatureOnboarding",
     "FeatureHome",
+    "FeatureExplore",
 ]
 
 let package = Package(
