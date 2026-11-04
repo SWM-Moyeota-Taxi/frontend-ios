@@ -50,10 +50,12 @@ jobs:
       - name: Restore configuration
         env:
           NAVER_MAPS_CLIENT_ID: ${{ secrets.NAVER_MAPS_CLIENT_ID }}
+          # 선택. 비어 있으면 그 빌드는 행동 이벤트를 보내지 않는다(docs/ANALYTICS.md) — 위 필수 검사에 넣지 않는다.
+          MIXPANEL_TOKEN: ${{ secrets.MIXPANEL_TOKEN }}
           GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
           ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
         run: |
-          printf 'NAVER_MAPS_CLIENT_ID = %s\nDEVELOPMENT_TEAM = 82C22U9Z7R\n' "$NAVER_MAPS_CLIENT_ID" > Config/Secrets.xcconfig
+          printf 'NAVER_MAPS_CLIENT_ID = %s\nMIXPANEL_TOKEN = %s\nDEVELOPMENT_TEAM = 82C22U9Z7R\n' "$NAVER_MAPS_CLIENT_ID" "$MIXPANEL_TOKEN" > Config/Secrets.xcconfig
           printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 -d > Moyeota/GoogleService-Info.plist
           # API 키는 워크스페이스 밖에 둔다. 실패 로그를 아티팩트로 올릴 때 섞이지 않게 한다.
           printf '%s' "$ASC_KEY_P8_BASE64" | base64 -d > "$RUNNER_TEMP/asc.p8"
