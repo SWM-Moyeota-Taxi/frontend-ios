@@ -41,6 +41,7 @@ public final class LoginViewModel {
                 guard let self else { return }
                 self.uiState.submitting = false
                 self.uiState.loggedIn = true
+                Analytics.track(.loginCompleted)
             } catch {
                 // 뷰모델이 해제돼 태스크가 취소된 경우만 조용히 끝낸다. 그 밖에는 제출 중으로 남기지 않는다.
                 guard let failure = authFailureOnLiveTask(error: error) else { return }

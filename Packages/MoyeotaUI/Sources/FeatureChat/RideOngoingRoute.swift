@@ -158,6 +158,7 @@ public final class RideOngoingViewModel {
         guard isRideFinished(ride: fetched) else { return false }
         logger.debug("운행 완료 감지 partyId=\(self.partyId) → 33 도착 완료")
         finished = true
+        Analytics.track(.rideFinished)
         return true
     }
 }

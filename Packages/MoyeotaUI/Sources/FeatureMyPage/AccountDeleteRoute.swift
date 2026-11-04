@@ -155,6 +155,8 @@ public final class AccountDeleteViewModel {
                 try await repository.deleteAccount(password: state.password)
                 // 204 를 받은 **이 자리**가 탈퇴를 말할 수 있는 지점이다
                 onDeleted()
+                // 세션이 곧 사라지며 리포터가 사용자 연결을 끊는다 — 그 전에 기록해야 탈퇴한 사람의 이벤트로 남는다.
+                Analytics.track(.accountDeleted)
                 // 비밀번호를 상태에 남기지 않는다 — 화면은 곧 사라지지만 뷰모델이 몇 프레임 더 산다.
                 // submitting 은 끄지 않는다(위 주석): 이 화면은 성공 후 로딩 상태로 사라진다.
                 self?.uiState.password = ""

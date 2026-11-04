@@ -79,6 +79,7 @@ public final class JoinConfirmViewModel {
         // 연타한 두 번째 호출이 위 검사를 통과해 합류 요청이 두 번 나간다.
         joinState.joining = true
         joinState.errorMessage = nil
+        Analytics.track(.partyJoinClicked)
         let repository = repository
         let partyId = partyId
         scope.launch { [weak self] in
@@ -97,6 +98,7 @@ public final class JoinConfirmViewModel {
                 }
                 guard let e = live as? PartyJoinException else {
                     self?.finishJoin(errorMessage: JOIN_FAILED_MESSAGE)
+                    Analytics.track(.matchRequestFailed(method: .join, reason: "unknown"))
                     return
                 }
                 if e.isAlreadyInThisParty {
@@ -104,6 +106,7 @@ public final class JoinConfirmViewModel {
                     return
                 }
                 self?.finishJoin(errorMessage: joinFailureMessage(e: e))
+                Analytics.track(.matchRequestFailed(method: .join, reason: joinFailureReason(e: e)))
                 if e.isPartyFull || e.isPartyClosed {
                     // 떠 있는 방을 로딩으로 덮지 않고 다시 읽는다. 실패는 조용히 둔다 — 보던 값이 조금 낡는 것보다 낫다.
                     guard let ride = try? await repository.getPartyDetail(partyId: partyId) else { return }
@@ -116,8 +119,32 @@ public final class JoinConfirmViewModel {
     private func finishJoin(errorMessage: String? = nil, joinedPartyId: Int64? = nil) {
         joinState.joining = false
         if let errorMessage { joinState.errorMessage = errorMessage }
-        if let joinedPartyId { joinState.joinedPartyId = joinedPartyId }
+        if let joinedPartyId {
+            joinState.joinedPartyId = joinedPartyId
+            // 핵심 퍼널 2단계(합류 쪽). 「이미 이 방 멤버」로 복구된 경우도 서버에 내 자리가 있다는 뜻이라 같이 센다.
+            // 방 상세에는 주소가 없어 지역은 싣지 못한다 — 방 생성 쪽만 지역이 있다.
+            let ride: Ride? = if case .success(let ride) = uiState { ride } else { nil }
+            Analytics.track(.matchRequested(
+                method: .join,
+                capacity: ride?.capacity,
+                originArea: nil,
+                destinationArea: nil,
+                estimatedFare: ride?.estimatedFare
+            ))
+        }
     }
+}
+
+/// `fail_match_request` 의 `reason` — `joinFailureMessage` 와 같은 분기를 문구가 아니라 상수로 옮긴다.
+/// `isAlreadyInThisParty` 는 여기 오지 않는다(성공 경로).
+func joinFailureReason(e: PartyJoinException) -> String {
+    if e.isPartyFull { return "party_full" }
+    if e.isPartyClosed { return "party_closed" }
+    if e.isPartyNotFound { return "party_not_found" }
+    if e.isAlreadyInAnotherParty { return "already_in_party" }
+    if e.isAlreadyJoined { return "already_joined" }
+    if e.isNetwork { return "network" }
+    return "unknown"
 }
 
 /// 합류 실패를 사용자 문구로 옮긴다 — 실패마다 **다른 말**을 해야 다음 행동이 갈린다
