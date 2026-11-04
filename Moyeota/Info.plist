@@ -28,6 +28,8 @@
 	<true/>
 	<key>MOYEOTA_BASE_URL</key>
 	<string>$(MOYEOTA_BASE_URL)</string>
+	<key>MixpanelToken</key>
+	<string>$(MIXPANEL_TOKEN)</string>
 	<key>NMFNcpKeyId</key>
 	<string>$(NAVER_MAPS_CLIENT_ID)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

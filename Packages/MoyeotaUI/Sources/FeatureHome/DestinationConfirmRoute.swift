@@ -47,6 +47,17 @@ func openFailureMessage(e: PartyOpenException) -> String {
     return OPEN_FAILED_MESSAGE
 }
 
+/// `fail_match_request` 의 `reason` — `openFailureMessage` 와 같은 분기를 **문구가 아니라 상수**로 옮긴다.
+/// 문구를 그대로 보내면 카피를 다듬을 때마다 Mixpanel 의 집계가 갈라진다.
+func openFailureReason(e: PartyOpenException) -> String {
+    if e.isAlreadyInAnotherParty { return "already_in_party" }
+    if e.isSameDepartureDestination { return "same_departure_destination" }
+    if e.isOutOfServiceArea { return "out_of_service_area" }
+    if e.isInvalidCapacity { return "invalid_capacity" }
+    if e.isRouteUnavailable { return "route_unavailable" }
+    return "unknown"
+}
+
 // 방 생성자는 서버가 Bearer 토큰 주체로 정한다 — 요청 본문에 사용자 id 를 싣지 않는다.
 @MainActor
 @Observable
@@ -111,6 +122,7 @@ public final class CreatePartyViewModel {
         // 잠금은 태스크 안이 아니라 여기서 건다. `Task` 는 다음 차례로 밀려, 그 틈에 연타가 지나간다.
         uiState.creating = true
         uiState.errorMessage = nil
+        Analytics.track(.partyCreateClicked(capacity: conditions.capacity))
         let repository = self.repository
         return scope.launch { [weak self] in
             do {
@@ -133,6 +145,14 @@ public final class CreatePartyViewModel {
                 guard let self else { return }
                 self.uiState.creating = false
                 self.uiState.createdParty = party
+                // 핵심 퍼널 2단계(방 만들기 쪽). 지역은 시/구까지만, 좌표·번지는 싣지 않는다.
+                Analytics.track(.matchRequested(
+                    method: .create,
+                    capacity: party.capacity,
+                    originArea: administrativeArea(fromAddress: origin.roadName),
+                    destinationArea: administrativeArea(fromAddress: destination.roadName),
+                    estimatedFare: party.estimatedFare
+                ))
             } catch {
                 guard let self else { return }
                 self.uiState.creating = false
@@ -144,9 +164,11 @@ public final class CreatePartyViewModel {
                     // 409 는 문구만으로 풀리지 않는다 — 홈 배너가 뜨도록 진행 중 방 조회를 되살린다.
                     self.uiState.needsActivePartyRefresh =
                         self.uiState.needsActivePartyRefresh || e.isAlreadyInAnotherParty
+                    Analytics.track(.matchRequestFailed(method: .create, reason: openFailureReason(e: e)))
                 } else {
                     // 데이터 계층이 좁히지 못한 실패(직렬화 등). 사유를 모르므로 일반 문구다.
                     self.uiState.errorMessage = OPEN_FAILED_MESSAGE
+                    Analytics.track(.matchRequestFailed(method: .create, reason: "unknown"))
                 }
             }
         }

@@ -193,6 +193,12 @@ public final class MatchWaitingViewModel {
     /// 「나를 본 적이 있다」는 증거가 생긴 뒤에만 그 판정을 켠다.
     @ObservationIgnored private var sawMyself = false
 
+    /// `complete_match` 를 이미 기록했는가 — 뷰모델 수명 동안 한 번만(`trackMatchCompletionIfNeeded`).
+    @ObservationIgnored private var matchCompletionTracked = false
+
+    /// 이 화면에 들어온 시각. `complete_match` 의 `waited_seconds` 기준이다(신청 시점이 아니라 화면 진입).
+    @ObservationIgnored private let enteredAt = Date()
+
     public init(
         repository: any RideRepository,
         partyId: Int64,
@@ -571,7 +577,12 @@ public final class MatchWaitingViewModel {
         ) { [weak self] in
             // 나가는 주체는 Bearer 토큰이 정한다 — memberId 를 넘기지 않는다 (22 보고서 §2)
             try await repository.leaveParty(partyId: partyId)
-            self?.actionState.left = true
+            guard let self else { return }
+            self.actionState.left = true
+            // 퍼널에서 빠져나간 사람 — 그때 몇 명이 모여 있었는지가 「왜 포기했나」의 첫 단서다.
+            if let ride = self.heldRide {
+                Analytics.track(.matchCanceled(capacity: ride.capacity, memberCount: ride.members.count))
+            }
         }
     }
 
@@ -600,7 +611,9 @@ public final class MatchWaitingViewModel {
             messageOf: { ($0 as? PartyFinishException).map { finishFailureMessage(e: $0) } }
         ) { [weak self] in
             try await repository.finishParty(partyId: partyId)
-            self?.actionState.finished = true
+            guard let self else { return }
+            self.actionState.finished = true
+            Analytics.track(.partyFinished(memberCount: self.heldRide?.members.count ?? 0))
         }
     }
 
@@ -643,6 +656,22 @@ public final class MatchWaitingViewModel {
     /// `MutableStateFlow` 처럼 같은 값이면 내보내지 않는다 — 같은 내용의 상세가 와도 화면이 다시 그려지지 않는다.
     private func publish(_ state: UiState) {
         if uiState != state { uiState = state }
+        trackMatchCompletionIfNeeded(state)
+    }
+
+    /// 핵심 퍼널 3단계 `complete_match` — 방이 정원 충족 이상(`isMatchFull`)인 것을 **이 뷰모델이 처음 본 순간**
+    /// 한 번만 기록한다. 스냅샷·변경분·폴백 상세가 전부 `publish` 를 지나므로 어느 경로로 알게 되든 같은 자리다.
+    ///
+    /// 뷰모델 단위로 한 번이다. 정원이 찬 방을 두고 나갔다 돌아오면(홈 배너 → 21) 새 뷰모델이 다시 세지만,
+    /// Mixpanel 퍼널은 사용자 단위로 세므로 전환율은 흔들리지 않는다 — 횟수가 아니라 「경험했는가」를 보는 지표다.
+    private func trackMatchCompletionIfNeeded(_ state: UiState) {
+        guard !matchCompletionTracked, case .success(let ride) = state, isMatchFull(status: ride.status) else { return }
+        matchCompletionTracked = true
+        Analytics.track(.matchCompleted(
+            capacity: ride.capacity,
+            memberCount: ride.members.count,
+            waitedSeconds: Int(Date().timeIntervalSince(enteredAt))
+        ))
     }
 
     private func markPartyClosed() {
@@ -672,6 +701,15 @@ public final class MatchWaitingViewModel {
 /// 이 밖으로 나가면 배차가 시작됐거나(25 배차 현황) 방이 닫힌 것이라 폴백 폴링을 끝낸다.
 func isWaitingForMembers(status: RideStatus) -> Bool {
     status == .recruiting || status == .matched
+}
+
+/// 정원이 찼는가 — 정원 충족(MATCHED) 과 그 뒤 단계(배차·운행). `complete_match` 의 판정이다.
+///
+/// 닫힌 방(COMPLETED·CANCELED)은 아니다: 모집 중에 30분 만료로 닫힌 방을 「매칭 완료」로 세면 퍼널이
+/// 거짓을 말한다. 판정을 status 로만 하는 이유는 `hasMemberDrift` 와 같다 — 목록은 유실될 수 있는 신호를
+/// 더해 만든 값이고, status 는 서버가 그 자리에서 판정한 값이다.
+func isMatchFull(status: RideStatus) -> Bool {
+    status == .matched || status == .dispatching || status == .ongoing
 }
 
 /// 이번 주기에 방 상세를 읽어야 하나 — **폴링 정책 그 자체**.
