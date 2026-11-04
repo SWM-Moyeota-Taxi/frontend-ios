@@ -77,6 +77,11 @@ final class SignupViewModel {
                 _ = try await repository.login(loginId: newUser.loginId, password: newUser.password)
                 self?.uiState.submitting = false
                 self?.uiState.done = true
+                // 핵심 퍼널 1단계. 성별·연령대는 서버가 다시 돌려주지 않으므로 가입 폼의 값에서 여기서만 나온다.
+                Analytics.track(.signupCompleted(
+                    gender: newUser.gender,
+                    ageBand: ageBand(birthDate: newUser.birthDate, today: LocalDate.now())
+                ))
             } catch {
                 guard let self else { return }
                 self.uiState.submitting = false

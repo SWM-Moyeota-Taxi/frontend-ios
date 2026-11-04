@@ -11,6 +11,7 @@
 		A10000000000000000000002 /* MoyeotaData in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000012 /* MoyeotaData */; };
 		A10000000000000000000003 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000013 /* FirebaseMessaging */; };
 		A10000000000000000000004 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000014 /* FirebaseCrashlytics */; };
+		A10000000000000000000005 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000015 /* Mixpanel */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +51,7 @@
 				A10000000000000000000002 /* MoyeotaData in Frameworks */,
 				A10000000000000000000003 /* FirebaseMessaging in Frameworks */,
 				A10000000000000000000004 /* FirebaseCrashlytics in Frameworks */,
+				A10000000000000000000005 /* Mixpanel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -109,6 +111,7 @@
 				A10000000000000000000012 /* MoyeotaData */,
 				A10000000000000000000013 /* FirebaseMessaging */,
 				A10000000000000000000014 /* FirebaseCrashlytics */,
+				A10000000000000000000015 /* Mixpanel */,
 			);
 			productName = Moyeota;
 			productReference = A10000000000000000000021 /* Moyeota.app */;
@@ -137,6 +140,7 @@
 				A10000000000000000000092 /* XCLocalSwiftPackageReference "Packages/MoyeotaCore" */,
 				A10000000000000000000093 /* XCLocalSwiftPackageReference "Packages/MoyeotaUI" */,
 				A10000000000000000000094 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				A10000000000000000000095 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A10000000000000000000063 /* Products */;
@@ -336,6 +340,14 @@
 				version = 13.1.1;
 			};
 		};
+		A10000000000000000000095 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mixpanel/mixpanel-swift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 7.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -356,6 +368,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A10000000000000000000094 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;
+		};
+		A10000000000000000000015 /* Mixpanel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000095 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
+			productName = Mixpanel;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

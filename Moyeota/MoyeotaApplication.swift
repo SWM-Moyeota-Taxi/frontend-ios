@@ -90,6 +90,13 @@ final class MoyeotaApplication {
         }
         // 인증 클라이언트가 섞이면 액세스 토큰이 CDN 액세스 로그로 새어 나간다. 기본값에 의존하지 않고 코드로 못 박는다.
         MoyeotaImageLoader.configure(session: appContainer.imageClient)
+        // 행동 이벤트(Mixpanel). 세션을 따라 사용자를 식별하므로 컨테이너 뒤, 첫 화면(`view_screen`)보다는 앞이다.
+        // 토큰이 없으면 꺼진다 — Firebase 와 같은 「없어도 돈다」 규칙(`MixpanelAnalyticsReporter`).
+        MixpanelAnalyticsReporter.install(
+            token: Bundle.main.object(forInfoDictionaryKey: "MixpanelToken") as? String,
+            session: appContainer.userSession,
+            debuggable: isDebuggableBuild
+        )
         // 원본의 `createNotificationChannel` 은 옮길 것이 없다 — iOS 에는 알림 채널이 없다(docs/IOS-DIFFERENCES.md).
         if FirebaseRuntime.isConfigured {
             Messaging.messaging().delegate = messagingService

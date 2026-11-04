@@ -87,6 +87,8 @@ public final class EmergencyViewModel {
     public func onEmergencyHold() {
         if uiState.dialLaunched { return }
         uiState.dialLaunched = true
+        // 신고 저장의 성공 여부와 무관하게 「신고에 이르렀다」는 사실을 센다 — 안전 기능이 쓰이는 빈도다.
+        Analytics.track(.emergencyTriggered)
         let repository = self.repository
         let partyId = self.partyId
         scope.launch { [weak self] in

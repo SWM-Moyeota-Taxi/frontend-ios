@@ -648,6 +648,14 @@ private struct MainNavContent: View {
         .onChange(of: projection.path.count, initial: true) { _, count in
             renderedPath.depth = count
         }
+        // 화면 조회(`view_screen`)는 **여기 한 곳**에서만 기록한다. 화면마다 `onAppear` 로 심지 않는 이유는
+        // `isTopStackEntry` 주석에 있다 — `NavigationStack` 은 덮인 화면에도 `onAppear` 를 다시 부른다.
+        // 스택의 맨 위(`currentRoute`)가 바뀐 순간이 곧 「사용자가 그 화면을 봤다」이고, 16 대화상자도 맨 위라 함께 잡힌다.
+        // 이름은 인자를 채우기 전 패턴(`Route.destination`)이라 채팅방 id 가 섞이지 않는다.
+        .onChange(of: navController.currentRoute, initial: true) { _, route in
+            guard let route else { return }
+            Analytics.track(.screenViewed(screen: route.destination))
+        }
         .onAppear {
             probe?.markLogoutRequested = { logoutRequested = true }
             probe?.markDeleteRequested = { accountDeleteRequested = true }
